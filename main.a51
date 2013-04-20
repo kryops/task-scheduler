@@ -5,7 +5,7 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (serialSend, processAusgabeB)
+EXTRN CODE (serialSend, processConsole, processAusgabeB)
 
 
 ; Variablen anlegen
@@ -17,8 +17,9 @@ STACK:	DS	4
 
 ; Interrupt-Routinen definieren
 CSEG
-ORG		0x23
-JMP		serialInterrupt
+
+;ORG		0x23
+;JMP		serialInterrupt
 
 
 
@@ -39,9 +40,10 @@ start:
 ; Interrupts
 SETB	EAL		; Interrupts global aktivieren
 
-MOV		A,IEN0	; Interrupt-Flag auf ES0 = IEN0.4
-SETB	ACC.4
-MOV		IEN0,A
+; Serielles Interrupt vorerst deaktiviert -> in Prozessen über Polling lösen?
+;MOV		A,IEN0	; Interrupt-Flag auf ES0 = IEN0.4
+;SETB	ACC.4
+;MOV		IEN0,A
 
 
 ; Serial Mode 1: 8bit-UART bei Baudrate 9600
@@ -57,7 +59,7 @@ MOV		S0RELH,#0x03	; 9600 = 03D9H
 MOV		SP,#STACK
 
 
-CALL	processAusgabeB
+CALL	processConsole
 
 
 pointlessLoop:
@@ -78,20 +80,7 @@ pointlessLoop:
 	NOP
 	NOP
 	
-
+	
 	JMP pointlessLoop
-
-;
-;
-;
-;
-;
-serialInterrupt:
-
-	NOP
-	NOP
-
-RETI
-
 
 END
