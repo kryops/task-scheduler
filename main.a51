@@ -5,8 +5,7 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (serialSend, processConsole, processAusgabeB)
-
+EXTRN CODE (serialSend, processConsole, processAusgabeAStart, processAusgabeAStop, processAusgabeAInt, processAusgabeB)
 
 ; Variablen anlegen
 dataSegment	SEGMENT DATA
@@ -21,7 +20,9 @@ CSEG
 ;ORG		0x23
 ;JMP		serialInterrupt
 
-
+CSEG
+ORG		0x0B
+JMP		processAusgabeAInt
 
 ; Systemstart-Anweisungen
 ORG 0
