@@ -5,7 +5,7 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (serialSend, processConsole, processAusgabeAStart, processAusgabeAStop, processAusgabeAInt, processAusgabeB)
+EXTRN CODE (scheduler, serialSend, processConsole, processAusgabeAStart, processAusgabeAStop, processAusgabeAInt, processAusgabeB)
 
 ; Variablen anlegen
 dataSegment	SEGMENT DATA
@@ -17,20 +17,19 @@ STACK:	DS	4
 ; Interrupt-Routinen definieren
 CSEG
 
-;ORG		0x23
-;JMP		serialInterrupt
-
-CSEG
-ORG		0x0B
+ORG		0x0B	; Timer0
 JMP		processAusgabeAInt
+
+ORG		0x1B	; Timer1
+JMP		scheduler
 
 ; Systemstart-Anweisungen
 ORG 0
 JMP		start
 
+
 codeSegment SEGMENT CODE
 RSEG codeSegment
-
 
 start:
 
@@ -38,13 +37,10 @@ start:
 ; Prozessor-Konfiguration
 ;
 
-; Interrupts
+; Interrupt-Flags
 SETB	EAL		; Interrupts global aktivieren
 
-; Serielles Interrupt vorerst deaktiviert -> in Prozessen über Polling lösen?
-;MOV		A,IEN0	; Interrupt-Flag auf ES0 = IEN0.4
-;SETB	ACC.4
-;MOV		IEN0,A
+SETB	ET1		; Timer 1-Interrupt für den Scheduler
 
 
 ; Serial Mode 1: 8bit-UART bei Baudrate 9600
@@ -59,29 +55,16 @@ MOV		S0RELH,#0x03	; 9600 = 03D9H
 ; Stack Pointer auf reservierten Bereich setzen
 MOV		SP,#STACK
 
+; Timer 1 für den Scheduler aktivieren
+SETB	TR1
 
+
+;
+; Hauptprogramm
+;
+
+; Konsolenprozess starten
 CALL	processConsole
 
-
-pointlessLoop:
-	
-	; Watchdog-Reset
-	; muss periodisch ausgeführt werden, sonst setzt der Watchdog die CPU zurück
-	; und die Ausgaben gehen verloren
-	SETB	WDT
-	SETB	SWDT
-	
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
-	
-	
-	JMP pointlessLoop
 
 END

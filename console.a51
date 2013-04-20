@@ -9,13 +9,15 @@ PUBLIC	processConsole
 codeSegment SEGMENT CODE
 RSEG codeSegment
 
+
+;
+; Liest Zeichen von der seriellen Schnittstelle ein
+; a: Startet Prozess AusgabeA
+; b: Beendet Prozess AusgabeA
+; c: Startet Prozess AusgabeB
+; anderes Zeichen: Keine Aktion
+;
 processConsole:
-	
-	; Watchdog zurücksetzen
-	; TODO später im Scheduler
-	SETB	WDT
-	SETB	SWDT
-	
 	
 	; Serielle Schnittstelle durch Polling auslesen
 	JNB		RI0,processConsole
