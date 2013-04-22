@@ -20,6 +20,7 @@ processStack:	DS	12	; Stack für alle Prozesse (je 4 Bytes)
 ; SP,A,B,PSW,DPH,DPL,R0..R7
 processStatus:	DS	42	
 
+; Zwischen-Sicherungsvariablen für A, B und R0
 backupA:		DS	1
 backupB:		DS	1
 backupR0:		DS	1
@@ -216,24 +217,25 @@ startProcess:
 	
 	; Prozess-Startadresse ermitteln
 	CJNE	R7,#0,startProcessIndexNot0
-	
+		
+		; Prozess Konsole
 		MOV		DPTR,#processConsole
 		JMP		startProcessIndexFinish
 	
 	startProcessIndexNot0:
 	CJNE	R7,#1,startProcessIndexNot1
-	
+		
+		; Prozess AusgabeA
 		MOV		DPTR,#processAusgabeA
 		JMP		startProcessIndexFinish
 	
 	startProcessIndexNot1:
-	
-	MOV		DPTR,#processAusgabeB
+		
+		; Prozess AusgabeB
+		MOV		DPTR,#processAusgabeB
 	
 	startProcessIndexFinish:
 	
-	
-	;;; TODO richtige Reihenfolge?
 	MOV		@R1,DPL
 	INC		R1
 	MOV		@R1,DPH
