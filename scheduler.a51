@@ -34,15 +34,56 @@ RSEG codeSegment
 ;
 scheduler:
 	
+	; A, B und R0 vorsichern, da zur Offset-Berechnung benötigt
+	MOV		backupA,A
+	MOV		backupB,B
+	MOV		backupR0,R0
+	
+	MOV		A,currentProcess
+	
+	; Status des Prozesses sichern
+	MOV		B,#14	; Größe des Status-Bereichs pro Prozess
+	MUL		AB
+	ADD		A,#processStatus
+	MOV		R0,A
+	
+	; R0: Startadresse des Statusbereichs
+	
+	; Reihenfolge: SP,A,B,PSW,DPH,DPL,R0..R7
+	
+	MOV		@R0,SP
+	INC		R0
+	MOV		@R0,backupA
+	INC		R0
+	MOV		@R0,backupB
+	INC		R0
+	MOV		@R0,PSW
+	INC		R0
+	MOV		@R0,DPH
+	INC		R0
+	MOV		@R0,DPL
+	INC		R0
+	MOV		@R0,backupR0
+	INC		R0
+	MOV		@R0,R1
+	INC		R0
+	MOV		@R0,R2
+	INC		R0
+	MOV		@R0,R3
+	INC		R0
+	MOV		@R0,R4
+	INC		R0
+	MOV		@R0,R5
+	INC		R0
+	MOV		@R0,R6
+	INC		R0
+	MOV		@R0,R7
+	
+	
 	; Watchdog-Reset
 	; muss periodisch ausgeführt werden, sonst setzt der Watchdog die CPU zurück
 	SETB	WDT
 	SETB	SWDT
-	
-	
-	; A,B, und R0 vorsichern, da zur Offset-Berechnung benötigt
-	
-	
 	
 RETI
 
