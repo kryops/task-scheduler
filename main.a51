@@ -72,4 +72,12 @@ CALL	startProcess
 SETB	TR0
 
 
+
+infiniteLoop:
+	
+	NOP
+	
+JMP		infiniteLoop
+
+
 END

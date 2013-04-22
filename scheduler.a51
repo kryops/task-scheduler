@@ -2,9 +2,28 @@
 $NOMOD51
 #include <Reg517a.inc>
 
-; Symbol-Exporte
+; Symbol-Im- und -Exporte
 NAME	scheduler
-PUBLIC	scheduler
+PUBLIC	scheduler, startProcess, stopProcess
+EXTRN	CODE	(processConsole, processAusgabeA, processAusgabeB)
+
+; Variablen
+dataSegment SEGMENT DATA
+RSEG dataSegment
+
+processTable:	DS	3	; Welche Prozesse sind gerade aktiv? (je 1 Byte)
+processCount:	DS	3	; Prozess-Aufrufzähler (je 1 Byte)
+currentProcess:	DS	1	; Welcher Prozess läuft gerade?
+processStack:	DS	12	; Stack für alle Prozesse (je 4 Bytes)
+
+
+backupA:		DS	1
+backupB:		DS	1
+backupR0:		DS	1
+
+; Gesicherte Register für alle Prozesse (je 14 Byte)
+; SP,A,B,PSW,DPH,DPL,R0..R7
+processStatus:	DS	42	
 
 
 codeSegment SEGMENT CODE
@@ -20,24 +39,89 @@ scheduler:
 	SETB	WDT
 	SETB	SWDT
 	
-	NOP
-	NOP
-	NOP
-	NOP
-	NOP
 	
+	; A,B, und R0 vorsichern, da zur Offset-Berechnung benötigt
 	
-	;
-	; PC vom Stack holen und sichern
-	;
-	; Register sichern
-	;
-	; gesicherte Register des nächsten Prozesses laden
-	;
-	; PC des nächsten Prozesses auf den Stack schreiben
-	;
 	
 	
 RETI
+
+
+sillyLabel:
+
+;
+; Prozess starten
+; A: Prozess-Index
+;	0 = console
+;	1 = ausgabea
+;	2 = ausgabeb
+;
+startProcess:
+	
+	; Eintrag in Prozess-Tabelle aktivieren
+	MOV		R7,A
+	ADD		A,#processTable
+	MOV		R0,A
+	MOV		@R0,#0xff
+	MOV		A,R7
+	
+	; Stack-Adresse ermitteln
+	MOV		B,#4	; Größe des Stack-Bereichs pro Prozess
+	MUL		AB
+	ADD		A,#processStack
+	MOV		R1,A
+	
+	;;; TODO richtige Reihenfolge?
+	
+	MOV		DPTR,#sillyLabel
+	MOV		@R1,DPH
+	INC		R1
+	MOV		@R1,DPL
+	INC		R1
+	
+	MOV		A,R7
+	
+	; Status des Prozesses zurücksetzen
+	MOV		B,#14	; Größe des Status-Bereichs pro Prozess
+	MUL		AB
+	ADD		A,#processStatus
+	MOV		R0,A
+	
+	MOV		A,R1
+	MOV		@R0,A	; Stack auf Anfang setzen
+	
+	MOV		A,R0
+	INC		R0
+	MOV		R1,#1
+	
+	startProcessStatusResetLoop:
+		MOV		@R0,#0
+		INC		R1
+	CJNE	R1,#14,startProcessStatusResetLoop
+	
+	MOV		R7,A
+	
+RET
+
+;
+; Prozess beenden
+; A: Prozess-Index
+;	0 = console
+;	1 = ausgabea
+;	2 = ausgabeb
+;
+stopProcess:
+	
+	MOV		B,A
+	ADD		A,#processTable
+	MOV		R0,A
+	MOV		@R0,#0
+	MOV		A,B
+	
+	; Scheduler-Interrupt starten
+	SETB	TF0
+	
+RET
+
 
 END
