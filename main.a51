@@ -5,7 +5,7 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (scheduler, serialSend, processConsole, processAusgabeAStart, processAusgabeAStop, processAusgabeAInt, processAusgabeB)
+EXTRN CODE (scheduler, serialSend, processConsole, processAusgabeA, processAusgabeB)
 
 ; Variablen anlegen
 dataSegment	SEGMENT DATA
@@ -18,9 +18,6 @@ STACK:	DS	4
 CSEG
 
 ORG		0x0B	; Timer0
-JMP		processAusgabeAInt
-
-ORG		0x1B	; Timer1
 JMP		scheduler
 
 ; Systemstart-Anweisungen
@@ -40,7 +37,7 @@ start:
 ; Interrupt-Flags
 SETB	EAL		; Interrupts global aktivieren
 
-SETB	ET1		; Timer 1-Interrupt für den Scheduler
+SETB	ET0		; Timer 1-Interrupt für den Scheduler
 
 
 ; Serial Mode 1: 8bit-UART bei Baudrate 9600
@@ -56,7 +53,7 @@ MOV		S0RELH,#0x03	; 9600 = 03D9H
 MOV		SP,#STACK
 
 ; Timer 1 für den Scheduler aktivieren
-SETB	TR1
+SETB	TR0
 
 
 ;

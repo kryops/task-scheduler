@@ -5,14 +5,7 @@ $NOMOD51
 ; Symbol-Im- und -Exporte
 NAME	ausgabea
 EXTRN	CODE	(serialSend)
-PUBLIC	processAusgabeAStart, processAusgabeAStop, processAusgabeAInt
-
-
-dataSegmentPA SEGMENT DATA
-RSEG dataSegmentPA
-
-COUNT1:	DS 1
-COUNT2:	DS 1
+PUBLIC	processAusgabeA
 
 codeSegmentPA SEGMENT CODE
 RSEG codeSegmentPA
@@ -20,43 +13,37 @@ RSEG codeSegmentPA
 ;
 ; Sendet jede Sekunde ein 'a' auf dem seriellen Port
 ;
-processAusgabeAStart:
+processAusgabeA:
 
-	SETB	ET0	; Timer 0-Interrupt aktivieren
+	SETB	ET1	; Timer 0-Interrupt aktivieren
 	
 	; Timer konfigurieren
-	MOV		TMOD,#00000001b ; Mode 1 - 16 Bit Timer
+	MOV		A,TMOD
+	SETB	ACC.4
+	CLR		ACC.5
+	CLR		ACC.6
+	CLR		ACC.7
+	MOV		TMOD,A ; Mode 1 - 16 Bit Timer
 
 	; sofort erstes 'a' senden
-	MOV COUNT1,#1
-	MOV COUNT2,#1
+	MOV R0,#1
 	
-	SETB	TR0	; Timer aktivieren
+	SETB	TR1	; Timer aktivieren
 	
-RET
+processAloop:
+	
+	JNB 	TF1,processAloop;
+	CLR		TF1
+	
+	DJNZ	R0,processAloop
+	MOV		R0,#0x15
 
-processAusgabeAStop:
-
-	CLR		TR0
-	CLR		ET0
-	
-RET
-
-processAusgabeAInt:
-	
-	DJNZ	COUNT1,processAusgabeAIntEnd
-	MOV		COUNT1,#0x52
-	
-	DJNZ	COUNT2,processAusgabeAIntEnd
-	MOV		COUNT2,#0x02
 	
 	MOV		A,#97 ; 'a' ASCII
 	CALL	serialSend
-	;MOV		TMOD,#00000001b
 	
-processAusgabeAIntEnd:
-	; TF reset?
+	JMP	processAloop
 	
-RETI
+RET
 
 END
