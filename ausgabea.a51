@@ -25,8 +25,10 @@ processAloop:
 	CLR		TF1
 	
 	; Counter für ca. 1s
+	; Rechnung mit 24MHz Takt:
+	; ((((24 * 10^6) / 12) / 2^16) / 30) = 1,01..
 	DJNZ	R0,processAloop
-	MOV		R0,#0x15
+	MOV		R0,#0x1E
 
 	MOV		A,#97 ; 'a' ASCII
 	CALL	serialSend

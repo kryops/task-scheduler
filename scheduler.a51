@@ -118,7 +118,6 @@ scheduler:
 		
 		CJNE	@R0,#0xff,schedulerFindProcess
 	
-	
 	; Status des Prozesses wiederherstellen
 	MOV		A,currentProcess
 	MOV		B,#14	; Größe des Status-Bereichs pro Prozess

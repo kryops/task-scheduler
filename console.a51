@@ -10,7 +10,6 @@ EXTRN CODE (startProcess,stopProcess)
 codeSegment SEGMENT CODE
 RSEG codeSegment
 
-
 ;
 ; Liest Zeichen von der seriellen Schnittstelle ein
 ; a: Startet Prozess AusgabeA
