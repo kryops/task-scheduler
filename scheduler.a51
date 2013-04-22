@@ -33,15 +33,11 @@ RSEG codeSegment
 ; Prozess-Scheduler
 ;
 scheduler:
-	
+
 	; Watchdog-Reset
 	; muss periodisch ausgeführt werden, sonst setzt der Watchdog die CPU zurück
 	SETB	WDT
 	SETB	SWDT
-	
-	
-	; A,B, und R0 vorsichern, da zur Offset-Berechnung benötigt
-	
 	
 	
 RETI
