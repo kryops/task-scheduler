@@ -5,6 +5,7 @@ $NOMOD51
 ; Symbol-Im- und -Exporte
 NAME	console
 PUBLIC	processConsole
+EXTRN CODE (startProcess,stopProcess)
 
 codeSegment SEGMENT CODE
 RSEG codeSegment

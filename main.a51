@@ -5,7 +5,7 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (scheduler, serialSend, processConsole, processAusgabeA, processAusgabeB)
+EXTRN CODE (scheduler, startProcess, serialSend, processConsole, processAusgabeA, processAusgabeB)
 
 ; Variablen anlegen
 dataSegment	SEGMENT DATA
