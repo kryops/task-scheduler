@@ -101,6 +101,7 @@ scheduler:
 	MOV		A,R7
 	MOV		@R0,A
 	
+	; Nächsten Prozess auswählen
 	schedulerFindProcess:
 	
 		; Prozesse 0,1 und 2 durchlaufen
@@ -117,6 +118,12 @@ scheduler:
 		MOV		R0,A
 		
 		CJNE	@R0,#0xff,schedulerFindProcess
+
+	; Prozess-Aufrufe zählen
+	MOV		A,currentProcess
+	ADD		A,#processCount
+	MOV		R0,A
+	INC		@R0
 	
 	; Status des Prozesses wiederherstellen
 	MOV		A,currentProcess
@@ -267,6 +274,7 @@ RET
 ;
 stopProcess:
 	
+	; setzt den Eintrag in der Prozesstabelle zurück
 	MOV		B,A
 	ADD		A,#processTable
 	MOV		R0,A

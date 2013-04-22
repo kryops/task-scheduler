@@ -15,6 +15,9 @@ RSEG codeSegment
 ;
 serialSend:
 	
+	; Interrupts für die Dauer der seriellen Übertragung deaktivieren
+	CLR		EAL
+	
 	; Daten schreiben
 	MOV		S0BUF,A
 	
@@ -24,6 +27,9 @@ serialSend:
 		JNB		TI0,sendWait
 	
 	CLR		TI0		; nach Senden TI0 zurücksetzen
+	
+	; Interrupts wieder aktivieren
+	SETB	EAL
 	
 RET
 
