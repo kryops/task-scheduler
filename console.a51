@@ -33,10 +33,8 @@ processConsole:
 	
 	; a gelesen: Prozess AusgabeA starten
 	
-	NOP
-	;
-	;
-	;
+	MOV		A,#1
+	CALL	startProcess
 	
 	JMP		processConsole
 	
@@ -46,10 +44,8 @@ processConsole:
 	
 	; b gelesen: Prozess AusgabeA beenden
 	
-	NOP
-	;
-	;
-	;
+	MOV		A,#1
+	CALL	stopProcess
 	
 	JMP		processConsole
 	
@@ -59,10 +55,8 @@ processConsole:
 	
 	; c gelesen: Prozess AusgabeB starten
 	
-	NOP
-	;
-	;
-	;
+	MOV		A,#2
+	CALL	startProcess
 	
 	JMP processConsole
 

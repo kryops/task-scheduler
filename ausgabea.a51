@@ -15,34 +15,23 @@ RSEG codeSegmentPA
 ;
 processAusgabeA:
 
-	SETB	ET1	; Timer 0-Interrupt aktivieren
-	
-	; Timer konfigurieren
-	MOV		A,TMOD
-	SETB	ACC.4
-	CLR		ACC.5
-	CLR		ACC.6
-	CLR		ACC.7
-	MOV		TMOD,A ; Mode 1 - 16 Bit Timer
-
 	; sofort erstes 'a' senden
 	MOV R0,#1
 	
-	SETB	TR1	; Timer aktivieren
-	
 processAloop:
 	
-	JNB 	TF1,processAloop;
+	; Timer 1 Polling
+	JNB 	TF1,processAloop
 	CLR		TF1
 	
+	; Counter für ca. 1s
 	DJNZ	R0,processAloop
 	MOV		R0,#0x15
 
-	
 	MOV		A,#97 ; 'a' ASCII
 	CALL	serialSend
 	
-	JMP	processAloop
+	JMP		processAloop
 	
 RET
 
