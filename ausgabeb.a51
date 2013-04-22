@@ -4,7 +4,7 @@ $NOMOD51
 
 ; Symbol-Im- und -Exporte
 NAME	ausgabeb
-EXTRN	CODE	(serialSend)
+EXTRN	CODE	(serialSend, stopProcess)
 PUBLIC	processAusgabeB
 
 
@@ -27,6 +27,10 @@ processAusgabeB:
 		
 	CJNE	R0,#48,processBLoop
 	
+	
+	; Prozess beenden
+	MOV		A,#2
+	CALL stopProcess	
 	
 RET
 

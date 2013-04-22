@@ -37,8 +37,7 @@ start:
 ; Interrupt-Flags
 SETB	EAL		; Interrupts global aktivieren
 
-SETB	ET0		; Timer 1-Interrupt für den Scheduler
-SETB	ET1		; Timer 0-Interrupt für Prozess A aktivieren
+SETB	ET0		; Timer 0-Interrupt für den Scheduler
 
 MOV		TMOD,#00010000b ; Timer 1: 16 Bit Timer, Timer 2: 8 Bit Timer
 
