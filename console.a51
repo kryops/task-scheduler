@@ -34,6 +34,7 @@ processConsole:
 	; a gelesen: Prozess AusgabeA starten
 	
 	MOV		A,#1
+	MOV		B,#0xff ; niedrigste Priorität
 	CALL	startProcess
 	
 	JMP		processConsole
@@ -56,6 +57,7 @@ processConsole:
 	; c gelesen: Prozess AusgabeB starten
 	
 	MOV		A,#2
+	MOV		B,#0x88
 	CALL	startProcess
 	
 	JMP processConsole

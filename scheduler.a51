@@ -19,7 +19,7 @@ dataSegment SEGMENT DATA
 RSEG dataSegment
 
 processTable:	DS	numberProcesses	; Welche Prozesse sind gerade aktiv? (je 1 Byte)
-processCount:	DS	numberProcesses	; Prozess-Aufrufzähler (je 1 Byte)
+processTime:	DS	numberProcesses	; Zeitscheiben-Länge der Prozesses - Priorität (je 1 Byte)
 currentProcess:	DS	1	; Welcher Prozess läuft gerade?
 processStack:	DS	numberProcesses*stackSize	; Stack für alle Prozesse
 
@@ -47,6 +47,8 @@ processLocations: DW processConsole, processAusgabeA, processAusgabeB
 ; Prozess-Scheduler
 ;
 scheduler:
+
+	CLR TR0 ; Scheduler-Timer anhalten
 
 	; Watchdog-Reset
 	; muss periodisch ausgeführt werden, sonst setzt der Watchdog die CPU zurück
@@ -131,11 +133,12 @@ scheduler:
 		
 		CJNE	@R0,#0xff,schedulerFindProcess ; wenn nicht, weitersuchen
 
-	; Prozess-Aufrufe zählen
-	MOV		A,currentProcess
-	ADD		A,#processCount
+	; Zeitscheibe konfigurieren
+	MOV		A,#processTime
+	ADD		A,currentProcess
 	MOV		R0,A
-	INC		@R0
+	MOV		A,@R0
+	MOV		TH0,A
 	
 	; Status des Prozesses wiederherstellen
 	MOV		A,currentProcess
@@ -193,6 +196,8 @@ scheduler:
 	; Flag setzen, dass der Scheduler durchgelaufen ist
 	MOV		firstRun,#0xff
 	
+	SETB TR0 ; Scheduler-Timer starten
+	
 RETI
 
 
@@ -202,21 +207,22 @@ RETI
 ;	0 = console
 ;	1 = ausgabea
 ;	2 = ausgabeb
+; B: Zeitscheibe
+;	TH0 des Timers
+;	höherer Wert -> kürzere Zeitscheibe
 ;
 startProcess:
 	
 	; R7: Zwischenspeicher für Prozess-Index
-	
-	; Eintrag in Prozess-Tabelle aktivieren
 	MOV		R7,A
-	ADD		A,#processTable
-	MOV		R0,A
-	MOV		@R0,#0xff
-	MOV		A,R7
 	
-	; R0: Adresse Prozesstabellen-Eintrag
+	; Zeitscheibendauer 
+	ADD		A,#processTime
+	MOV		R0,A
+	MOV		@R0,B
 	
 	; Stack-Adresse ermitteln
+	MOV		A,R7
 	MOV		B,#stackSize	; Größe des Stack-Bereichs pro Prozess
 	MUL		AB
 	ADD		A,#processStack
@@ -274,6 +280,13 @@ startProcess:
 		INC		R0
 		INC		R1
 	CJNE	R1,#statusSize,startProcessStatusResetLoop
+	
+	
+	; Eintrag in Prozess-Tabelle aktivieren
+	MOV		A,R7
+	ADD		A,#processTable
+	MOV		R0,A
+	MOV		@R0,#0xff
 	
 RET
 

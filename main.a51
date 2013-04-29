@@ -60,14 +60,17 @@ MOV		SP,#STACK
 ;
 
 ; Konsolenprozess starten
-MOV		A,#0
+MOV		A,#0 ; Prozess 0
+MOV		B,#0 ; höchste Priorität
 CALL	startProcess
 
-; Timer 0 für den Scheduler aktivieren
+; Timer 0 fü
 SETB	TR0
 
 ; Scheduler-Interrupt starten
 SETB	TF0
+
+
 
 
 infiniteLoop:
