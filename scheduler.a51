@@ -7,21 +7,29 @@ NAME	scheduler
 PUBLIC	scheduler, startProcess, stopProcess
 EXTRN	CODE	(processConsole, processAusgabeA, processAusgabeB)
 
+
+; Konstanten, Scheduler-Konfiguration
+numberProcesses	EQU	3	; Anzahl maximal verwalteter Prozesse
+stackSize		EQU	4	; Stack-Bereich pro Prozess je 4 Bytes
+statusSize		EQU	14	; Status-Bereich pro Prozess je 14 Bytes
+
+
 ; Variablen
 dataSegment SEGMENT DATA
 RSEG dataSegment
 
-processTable:	DS	3	; Welche Prozesse sind gerade aktiv? (je 1 Byte)
-processCount:	DS	3	; Prozess-Aufrufzähler (je 1 Byte)
+processTable:	DS	numberProcesses	; Welche Prozesse sind gerade aktiv? (je 1 Byte)
+processCount:	DS	numberProcesses	; Prozess-Aufrufzähler (je 1 Byte)
 currentProcess:	DS	1	; Welcher Prozess läuft gerade?
-processStack:	DS	12	; Stack für alle Prozesse (je 4 Bytes)
+processStack:	DS	numberProcesses*stackSize	; Stack für alle Prozesse
 
-; Gesicherte Register für alle Prozesse (je 14 Byte)
+; Gesicherte Register für alle Prozesse
 ; SP,A,B,PSW,DPH,DPL,R0..R7
-processStatus:	DS	42	
+processStatus:	DS	numberProcesses*statusSize	
 
-backupA:		DS	1	; Zwischenspeicher für Register, die zum
-backupB:		DS	1	; speichern anderer Register benutzt werden
+; Zwischen-Sicherungsvariablen für A, B und R0
+backupA:		DS	1
+backupB:		DS	1
 backupR0:		DS	1
 
 firstRun:		DS	1	; Flag, ob der Scheduler bereits gelaufen ist
@@ -29,6 +37,11 @@ firstRun:		DS	1	; Flag, ob der Scheduler bereits gelaufen ist
 
 codeSegment SEGMENT CODE
 RSEG codeSegment
+
+; Start-Adressen der Prozesse
+; Anzahl muss mindestens der von numberProcesses entsprechen
+processLocations: DW processConsole, processAusgabeA, processAusgabeB
+
 
 ;
 ; Prozess-Scheduler
@@ -52,7 +65,7 @@ scheduler:
 	MOV		A,currentProcess
 
 	; Status des Prozesses sichern
-	MOV		B,#14	; Größe des Status-Bereichs pro Prozess
+	MOV		B,#statusSize	; Größe des Status-Bereichs pro Prozess
 	MUL		AB
 	ADD		A,#processStatus
 	MOV		R0,A
@@ -105,8 +118,9 @@ scheduler:
 		; Prozesse 0,1 und 2 durchlaufen
 		INC		currentProcess
 		MOV		A,currentProcess
-		CJNE	A,#3,schedulerNoReset
-		MOV		currentProcess,#0	; Zähler zurücksetzen
+
+		CJNE	A,#numberProcesses,schedulerNoReset
+		MOV		currentProcess,#0 ; Zähler zurücksetzen
 	
 	schedulerNoReset:
 	
@@ -125,14 +139,12 @@ scheduler:
 	
 	; Status des Prozesses wiederherstellen
 	MOV		A,currentProcess
-	MOV		B,#14	; Größe des Status-Bereichs pro Prozess
+	MOV		B,#statusSize	; Größe des Status-Bereichs pro Prozess
 	MUL		AB
 	ADD		A,#processStatus
 	MOV		R0,A
 	
 	; R0: Startadresse des Statusbereichs (neuer Prozess)
-	
-	; Reihenfolge: SP,A,B,PSW,DPH,DPL,R0..R7
 	
 	MOV		A,@R0
 	MOV		SP,A
@@ -205,7 +217,7 @@ startProcess:
 	; R0: Adresse Prozesstabellen-Eintrag
 	
 	; Stack-Adresse ermitteln
-	MOV		B,#4	; Größe des Stack-Bereichs pro Prozess
+	MOV		B,#stackSize	; Größe des Stack-Bereichs pro Prozess
 	MUL		AB
 	ADD		A,#processStack
 	MOV		R1,A
@@ -213,25 +225,27 @@ startProcess:
 	; R1: Stack-Startadresse des Prozesses
 	
 	; Prozess-Startadresse ermitteln
-	CJNE	R7,#0,startProcessIndexNot0
+	MOV		A,R7
+	MOV		B,#2	; jede Prozess-Adresse belegt 2 Byte
+	MUL		AB
+	MOV		R6,A	; R6: Zwischenspeicher für den Adress-Offset des Prozesses
+	MOV		DPTR,#processLocations
 	
-		MOV		DPTR,#processConsole
-		JMP		startProcessIndexFinish
+	MOVC	A,@A+DPTR	; High Byte auslesen und in R5 speichern
+	MOV		R5,A
 	
-	startProcessIndexNot0:
-	CJNE	R7,#1,startProcessIndexNot1
+	MOV		A,R6	; Offset für zweites Byte erhöhen
+	INC 	A
 	
-		MOV		DPTR,#processAusgabeA
-		JMP		startProcessIndexFinish
+	MOVC	A,@A+DPTR	; Low Byte auslesen
 	
-	startProcessIndexNot1:
+	; Adresse in den DPTR schreiben
+	MOV		DPL,A
+	MOV		DPH,R5
 	
-	MOV		DPTR,#processAusgabeB
+	; R5: High Byte der Prozess-Adresse
+	; R6: Offset der Prozess-Adresse
 	
-	startProcessIndexFinish:
-	
-	
-	;;; TODO richtige Reihenfolge?
 	MOV		@R1,DPL
 	INC		R1
 	MOV		@R1,DPH
@@ -239,7 +253,7 @@ startProcess:
 	MOV		A,R7
 	
 	; Status des Prozesses zurücksetzen
-	MOV		B,#14	; Größe des Status-Bereichs pro Prozess
+	MOV		B,#statusSize	; Größe des Status-Bereichs pro Prozess
 	MUL		AB
 	ADD		A,#processStatus
 	MOV		R0,A
@@ -259,7 +273,7 @@ startProcess:
 		MOV		@R0,#0
 		INC		R0
 		INC		R1
-	CJNE	R1,#14,startProcessStatusResetLoop
+	CJNE	R1,#statusSize,startProcessStatusResetLoop
 	
 RET
 

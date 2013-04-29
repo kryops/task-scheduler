@@ -5,11 +5,11 @@ $NOMOD51
 NAME	main
 
 ; Symbole aus den Modulen importieren
-EXTRN CODE (scheduler, startProcess, serialSend, processConsole, processAusgabeA, processAusgabeB)
+EXTRN CODE (scheduler, startProcess)
 
 ; Variablen anlegen
 dataSegment	SEGMENT DATA
-RSEG		dataSegment
+RSEG dataSegment
 
 STACK:	DS	4
 
@@ -36,13 +36,11 @@ start:
 
 ; Interrupt-Flags
 SETB	EAL		; Interrupts global aktivieren
-
 SETB	ET0		; Timer 0-Interrupt für den Scheduler
 
+; Timer-Konfiguration
 MOV		TMOD,#00010000b ; Timer 1: 16 Bit Timer, Timer 2: 8 Bit Timer
-
-; Timer 1 für Prozess A aktivieren
-SETB	TR1
+SETB	TR1		; Timer 1 für Prozess A aktivieren
 
 ; Serial Mode 1: 8bit-UART bei Baudrate 9600
 CLR		SM0
@@ -57,10 +55,8 @@ MOV		S0RELH,#0x03	; 9600 = 03D9H
 MOV		SP,#STACK
 
 
-
-
 ;
-; Hauptprogramm
+; Initialisierungs-Programm
 ;
 
 ; Konsolenprozess starten
@@ -70,6 +66,8 @@ CALL	startProcess
 ; Timer 0 für den Scheduler aktivieren
 SETB	TR0
 
+; Scheduler-Interrupt starten
+SETB	TF0
 
 
 infiniteLoop:
