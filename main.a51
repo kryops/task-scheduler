@@ -64,7 +64,7 @@ MOV		A,#0 ; Prozess 0
 MOV		B,#0 ; höchste Priorität
 CALL	startProcess
 
-; Timer 0 fü
+; Timer 0 für Scheduler-Interrupt
 SETB	TR0
 
 ; Scheduler-Interrupt starten
