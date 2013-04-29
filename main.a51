@@ -17,7 +17,7 @@ STACK:	DS	4
 ; Interrupt-Routinen definieren
 CSEG
 
-ORG		0x0B	; Timer 0
+ORG		0x0B	; Timer 0 Interrupt
 JMP		scheduler
 
 ; Systemstart-Anweisungen

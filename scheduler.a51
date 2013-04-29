@@ -20,13 +20,11 @@ processStack:	DS	12	; Stack für alle Prozesse (je 4 Bytes)
 ; SP,A,B,PSW,DPH,DPL,R0..R7
 processStatus:	DS	42	
 
-backupA:		DS	1
-backupB:		DS	1
+backupA:		DS	1	; Zwischenspeicher für Register, die zum
+backupB:		DS	1	; speichern anderer Register benutzt werden
 backupR0:		DS	1
 
 firstRun:		DS	1	; Flag, ob der Scheduler bereits gelaufen ist
-
-
 
 
 codeSegment SEGMENT CODE
@@ -108,7 +106,7 @@ scheduler:
 		INC		currentProcess
 		MOV		A,currentProcess
 		CJNE	A,#3,schedulerNoReset
-		MOV		currentProcess,#0
+		MOV		currentProcess,#0	; Zähler zurücksetzen
 	
 	schedulerNoReset:
 	
@@ -117,7 +115,7 @@ scheduler:
 		ADD		A,currentProcess
 		MOV		R0,A
 		
-		CJNE	@R0,#0xff,schedulerFindProcess
+		CJNE	@R0,#0xff,schedulerFindProcess ; wenn nicht, weitersuchen
 
 	; Prozess-Aufrufe zählen
 	MOV		A,currentProcess
